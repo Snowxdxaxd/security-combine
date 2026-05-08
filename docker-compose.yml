@@ -1,0 +1,10 @@
+services:
+  security-combine:
+    build: .
+    container_name: security-combine
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./reports:/app/reports
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped

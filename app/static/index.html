@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Security Combine</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        font-family: Segoe UI, Arial, sans-serif;
+        margin: 0;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+      .container {
+        max-width: 1100px;
+        margin: 24px auto;
+        padding: 0 16px;
+      }
+      .card {
+        background: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+      p {
+        margin: 0 0 10px;
+        color: #94a3b8;
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      input[type="url"] {
+        flex: 1;
+        min-width: 320px;
+        border-radius: 8px;
+        border: 1px solid #334155;
+        background: #0b1220;
+        color: #e2e8f0;
+        padding: 10px;
+      }
+      input[type="text"] {
+        border-radius: 8px;
+        border: 1px solid #334155;
+        background: #0b1220;
+        color: #e2e8f0;
+        padding: 10px;
+        min-width: 220px;
+      }
+      button {
+        border: none;
+        border-radius: 8px;
+        padding: 10px 14px;
+        background: #2563eb;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button:disabled {
+        background: #334155;
+        cursor: not-allowed;
+      }
+      .small-btn {
+        background: #334155;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      th,
+      td {
+        border-bottom: 1px solid #1f2937;
+        text-align: left;
+        padding: 10px 8px;
+        vertical-align: top;
+      }
+      th {
+        color: #93c5fd;
+      }
+      .status {
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      .status.pending {
+        color: #fbbf24;
+      }
+      .status.running {
+        color: #38bdf8;
+      }
+      .status.completed {
+        color: #22c55e;
+      }
+      .status.failed {
+        color: #f87171;
+      }
+      .status.paused {
+        color: #fbbf24;
+      }
+      a {
+        color: #93c5fd;
+      }
+      #message {
+        margin-top: 10px;
+        min-height: 20px;
+      }
+      .muted {
+        color: #94a3b8;
+      }
+      .run-banner {
+        position: fixed;
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        z-index: 50;
+        max-width: 1100px;
+        margin: 0 auto;
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 12px 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+      }
+      .run-banner h3 {
+        margin: 0 0 6px;
+        font-size: 15px;
+        color: #e2e8f0;
+      }
+      .run-banner .url {
+        font-size: 13px;
+        color: #94a3b8;
+        word-break: break-all;
+        margin-bottom: 8px;
+      }
+      .run-banner .step {
+        font-size: 13px;
+        color: #93c5fd;
+        margin-bottom: 8px;
+      }
+      .progress-bar {
+        height: 8px;
+        background: #0f172a;
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .progress-bar .fill {
+        height: 100%;
+        background: linear-gradient(90deg, #2563eb, #38bdf8);
+        border-radius: 6px;
+        transition: width 0.35s ease;
+        width: 0%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="runBanner" class="run-banner" hidden>
+      <h3>Идёт сканирование</h3>
+      <div id="runBannerUrl" class="url"></div>
+      <div id="runBannerStep" class="step"></div>
+      <div class="progress-bar" aria-hidden="true">
+        <div id="runBannerFill" class="fill"></div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="card">
+        <h1>Security Combine</h1>
+        <p>Запуск сканов по URL и просмотр результатов в одном месте.</p>
+        <div class="row">
+          <input id="urlInput" type="url" placeholder="https://example.com" />
+          <button id="scanButton" type="button">Запустить скан</button>
+          <button id="refreshButton" type="button" class="small-btn">Обновить список</button>
+        </div>
+        <div id="message" class="muted"></div>
+      </div>
+
+      <div class="card">
+        <div class="row" style="justify-content: space-between">
+          <h2 style="margin: 0">Задачи</h2>
+          <span id="lastUpdated" class="muted">Обновление...</span>
+        </div>
+        <div style="overflow-x: auto; margin-top: 12px">
+          <table>
+            <thead>
+              <tr>
+                <th>Job ID</th>
+                <th>URL</th>
+                <th>Этап</th>
+                <th>Статус</th>
+                <th>Старт</th>
+                <th>Финиш</th>
+                <th>Отчет</th>
+                <th>Ошибка</th>
+              </tr>
+            </thead>
+            <tbody id="jobsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const urlInput = document.getElementById("urlInput");
+      const scanButton = document.getElementById("scanButton");
+      const refreshButton = document.getElementById("refreshButton");
+      const message = document.getElementById("message");
+      const jobsBody = document.getElementById("jobsBody");
+      const lastUpdated = document.getElementById("lastUpdated");
+      const runBanner = document.getElementById("runBanner");
+      const runBannerUrl = document.getElementById("runBannerUrl");
+      const runBannerStep = document.getElementById("runBannerStep");
+      const runBannerFill = document.getElementById("runBannerFill");
+      let pollTimer = null;
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function formatDate(value) {
+        if (!value) return "-";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleString();
+      }
+
+      function updateRunBanner(runningJob) {
+        if (!runningJob) {
+          runBanner.hidden = true;
+          return;
+        }
+        runBanner.hidden = false;
+        runBannerUrl.textContent = runningJob.target_url || "";
+        const cur = Number(runningJob.progress_current) || 0;
+        const tot = Number(runningJob.progress_total) || 0;
+        const pct = tot > 0 ? Math.min(100, Math.round((100 * cur) / tot)) : 0;
+        const step = runningJob.progress_step || "…";
+        runBannerStep.textContent = tot ? `${step} (${cur}/${tot})` : step;
+        runBannerFill.style.width = `${pct}%`;
+      }
+
+      async function loadJobs() {
+        let list = [];
+        try {
+          const res = await fetch("/jobs?limit=200");
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          list = await res.json();
+          const running = list.find((j) => j.status === "running");
+          updateRunBanner(running);
+          jobsBody.innerHTML = list
+            .map((job) => {
+              const status = escapeHtml(job.status || "unknown");
+              const reportLink =
+                status === "completed"
+                  ? `<a href="/jobs/${encodeURIComponent(job.job_id)}/report/html" target="_blank" rel="noopener">HTML</a> · <a href="/jobs/${encodeURIComponent(job.job_id)}/report" target="_blank" rel="noopener">JSON</a>`
+                  : "-";
+              const tot = Number(job.progress_total) || 0;
+              const cur = Number(job.progress_current) || 0;
+              let stage = "-";
+              if (job.progress_step) {
+                stage = tot
+                  ? `${escapeHtml(job.progress_step)} (${cur}/${tot})`
+                  : escapeHtml(job.progress_step);
+              }
+              return `
+                <tr>
+                  <td><code>${escapeHtml(job.job_id)}</code></td>
+                  <td>${escapeHtml(job.target_url)}</td>
+                  <td class="muted">${stage}</td>
+                  <td><span class="status ${status}">${status}</span></td>
+                  <td>${escapeHtml(formatDate(job.started_at))}</td>
+                  <td>${escapeHtml(formatDate(job.finished_at))}</td>
+                  <td>${reportLink}</td>
+                  <td>${escapeHtml(job.error || "-")}</td>
+                </tr>
+              `;
+            })
+            .join("");
+          if (!list.length) {
+            jobsBody.innerHTML = `<tr><td colspan="8" class="muted">Пока нет задач</td></tr>`;
+          }
+          lastUpdated.textContent = `Обновлено: ${new Date().toLocaleTimeString()}`;
+        } catch (err) {
+          message.textContent = `Не удалось загрузить задачи: ${err.message}`;
+        } finally {
+          clearTimeout(pollTimer);
+          const hasRunning = list.length > 0 && list.some((x) => x.status === "running");
+          pollTimer = setTimeout(loadJobs, hasRunning ? 1500 : 5000);
+        }
+      }
+
+      async function startScan() {
+        const url = urlInput.value.trim();
+        if (!url) {
+          message.textContent = "Введите URL для сканирования";
+          return;
+        }
+        scanButton.disabled = true;
+        message.textContent = "Запуск скана...";
+        try {
+          const res = await fetch("/scan", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              url,
+              run_external_tools: true,
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.detail || `HTTP ${res.status}`);
+          }
+          message.innerHTML = `Скан запущен. Job ID: <code>${escapeHtml(data.job_id)}</code>`;
+          await loadJobs();
+        } catch (err) {
+          message.textContent = `Ошибка запуска: ${err.message}`;
+        } finally {
+          scanButton.disabled = false;
+        }
+      }
+
+      scanButton.addEventListener("click", startScan);
+      refreshButton.addEventListener("click", () => {
+        clearTimeout(pollTimer);
+        loadJobs();
+      });
+      loadJobs();
+    </script>
+  </body>
+</html>

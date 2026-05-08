@@ -1,0 +1,28 @@
+# Virtualenv
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Generated scan output (пересоздаётся локально)
+reports/*
+!reports/.gitkeep
+
+# IDE / local
+.idea/
+.vscode/
+*.log
+.env
+.env.*
+!.env.example
+
+# OS
+Thumbs.db
+Desktop.ini
